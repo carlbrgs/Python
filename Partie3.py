@@ -1,5 +1,5 @@
 from cryptography.hazmat.backends import default_backend        # librairie de cryptographie pour le chiffrement RSA
-from cryptography.hazmat.primitives.asymmetric import rsa       # librairie de cryptographie pour le chiffrement RSA
+import random
 from cryptography.hazmat.primitives import hashes               # librairie de cryptographie pour le hashage
 from cryptography.hazmat.primitives.asymmetric import padding   # librairie de cryptographie pour le padding
 
@@ -83,17 +83,78 @@ def dechiffrement_affine(texte, a, b):
 # Chiffrement RSA
 
 # Génération des clés RSA
+
+# Fonction pour vérifier si un nombre est premier
+def is_prime(n):
+   """
+   Détermine si un nombre est premier
+   n : int
+   """
+   if n == 1:
+       return False
+   for i in range(2,n):
+       if n % i == 0:
+           return False
+   return True
+    
+            
+
+# Fonction pour générer un nombre premier
+def generate_prime_number(start=1, end=100):
+    while True:
+        num = random.randint(start, end)
+        if is_prime(num):
+            return num
+
+# Fonction pour calculer le plus grand diviseur commun
+def pgcd(a, b):
+    while b != 0:
+        a, b = b, a % b
+    return a
+
+# Fonction pour trouver l'inverse modulaire
+def multiplicative_inverse(e, phi):
+    d = 0
+    x1 = 0
+    x2 = 1
+    y1 = 1
+    temp_phi = phi
+    
+    while e > 0:
+        temp1 = temp_phi//e
+        temp2 = temp_phi - temp1 * e
+        temp_phi = e
+        e = temp2
+        
+        x = x2- temp1* x1
+        y = d - temp1 * y1
+        
+        x2 = x1
+        x1 = x
+        d = y1
+        y1 = y
+    
+    if temp_phi == 1:
+        return d + phi
+
+# Génération des clés RSA
 def generer_cles_rsa():
-    """
-    Génère une paire de clés RSA.
-    """
-    cle_privee = rsa.generate_private_key(
-        public_exponent=65537,
-        key_size=2048,
-        backend=default_backend()
-    )
-    cle_publique = cle_privee.public_key()
-    return cle_privee, cle_publique
+    p = generate_prime_number()
+    q = generate_prime_number()
+    n = p * q
+    phi = (p-1) * (q-1)
+
+    e = random.randrange(1, phi)
+    g = pgcd(e, phi)
+    while g != 1:
+        e = random.randrange(1, phi)
+        g = pgcd(e, phi)
+
+    d = multiplicative_inverse(e, phi)
+    
+    return ((e, n), (d, n))
+
+public_key, private_key = generer_cles_rsa()
 
 # Chiffrement RSA
 def chiffrer_rsa(message, cle_publique):
