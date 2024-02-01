@@ -10,6 +10,8 @@ def est_premier(n, k=128):
     while d % 2 == 0:
         r += 1
         d //= 2
+    
+    #Pow permet de calculer à la puissance d, modulo n
     for _ in range(k):
         a = random.randrange(2, n - 1)
         x = pow(a, d, n)
